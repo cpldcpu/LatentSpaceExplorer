@@ -1,27 +1,38 @@
-// Import React and other dependencies first
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
-
-// Import and configure ONNX Runtime
 import { InferenceSession, env, Tensor } from 'onnxruntime-web';
 import msgpack from 'msgpack-lite';
 
+// Add type declaration for msgpack-lite
+declare module 'msgpack-lite';
+
+// Type definitions
+interface Metadata {
+  x_coords: number[];
+  y_coords: number[];
+  density_maps: number[][][];
+}
+
+type DigitColors = {
+  [key: number]: string;
+};
+
 const VAEExplorer = () => {
-  const canvasRef = useRef(null);
-  const mapCanvasRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const metadataInputRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mapCanvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const metadataInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 195, y: 195 }); // Center point adjusted for new size
   const [modelLoaded, setModelLoaded] = useState(false);
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<InferenceSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [metadata, setMetadata] = useState(null);
+  const [metadata, setMetadata] = useState<Metadata | null>(null);
   
   // Cyberpunk color palette for digits
-  const digitColors = {
+  const digitColors: DigitColors = {
     0: '#FF4D4D',    // Neon Red
     1: '#00C6FF',    // Cyan
     2: '#FF00A8',    // Hot Pink
@@ -46,23 +57,26 @@ const VAEExplorer = () => {
     console.log('ONNX Runtime environment configured');
   }, []);
 
+  // Update session options type
+  const sessionOptions: InferenceSession.SessionOptions = {
+    executionProviders: ['wasm'],
+    graphOptimizationLevel: 'all' as const,
+    enableCpuMemArena: false,
+    enableMemPattern: false,
+  };
+
   // Function to load default ONNX model
   const loadDefaultModel = async () => {
     try {
       setIsLoading(true);
 
-      const modelUrl = '/model.onnx'; // Path to default model in public folder
+      const modelUrl = 'model.onnx'; // Path to default model in public folder
       const response = await fetch(modelUrl);
       const modelBuffer = await response.arrayBuffer();
 
-      const options = {
-        executionProviders: ['wasm'],
-        graphOptimizationLevel: 'all',
-        enableCpuMemArena: false,
-        enableMemPattern: false,
-      };
-
-      const session = await InferenceSession.create(modelBuffer, options);
+      // Convert ArrayBuffer to Uint8Array
+      const modelData = new Uint8Array(modelBuffer);
+      const session = await InferenceSession.create(modelData, sessionOptions);
       setSession(session);
       setModelLoaded(true);
     } catch (error) {
@@ -75,10 +89,10 @@ const VAEExplorer = () => {
   // Function to load default metadata
   const loadDefaultMetadata = async () => {
     try {
-      const metadataUrl = '/metadata.msgpack'; // Path to default metadata in public folder
+      const metadataUrl = 'metadata.msgpack'; // Path to default metadata in public folder
       const response = await fetch(metadataUrl);
       const arrayBuffer = await response.arrayBuffer();
-      const data = msgpack.decode(new Uint8Array(arrayBuffer));
+      const data = msgpack.decode(new Uint8Array(arrayBuffer)) as Metadata;
       setMetadata(data);
       drawLatentSpace(data);
     } catch (error) {
@@ -86,8 +100,8 @@ const VAEExplorer = () => {
     }
   };
 
-  const handleModelFileSelect = async (event) => {
-    const file = event.target.files[0];
+  const handleModelFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
       setIsLoading(true);
       try {
@@ -101,15 +115,9 @@ const VAEExplorer = () => {
         // Revoke blob URL
         URL.revokeObjectURL(blobUrl);
 
-        const options = {
-          executionProviders: ['wasm'],
-          graphOptimizationLevel: 'all',
-          enableCpuMemArena: false,
-          enableMemPattern: false,
-        };
-
-        // Create session with model buffer
-        const session = await InferenceSession.create(modelBuffer, options);
+        // Convert ArrayBuffer to Uint8Array
+        const modelData = new Uint8Array(modelBuffer);
+        const session = await InferenceSession.create(modelData, sessionOptions);
         setSession(session);
         setModelLoaded(true);
       } catch (error) {
@@ -121,12 +129,12 @@ const VAEExplorer = () => {
     }
   };
 
-  const handleMetadataFileSelect = async (event) => {
-    const file = event.target.files[0];
+  const handleMetadataFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
       try {
         const arrayBuffer = await file.arrayBuffer();
-        const data = msgpack.decode(new Uint8Array(arrayBuffer));
+        const data = msgpack.decode(new Uint8Array(arrayBuffer)) as Metadata;
         setMetadata(data);
         drawLatentSpace(data);
       } catch (error) {
@@ -135,9 +143,13 @@ const VAEExplorer = () => {
     }
   };
 
-  const drawLatentSpace = (metadata) => {
+  const drawLatentSpace = (metadata: Metadata) => {
     const canvas = mapCanvasRef.current;
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
     const width = canvas.width;
     const height = canvas.height;
     
@@ -212,8 +224,8 @@ const VAEExplorer = () => {
     ctx.globalCompositeOperation = 'source-over';
   };
 
-  const generateDigit = async (x, y) => {
-    if (!session) return;
+  const generateDigit = async (x: number, y: number) => {
+    if (!session || !canvasRef.current) return;
 
     try {
       // Create tensor using Tensor
@@ -225,13 +237,14 @@ const VAEExplorer = () => {
       });
 
       // Get output data
-      const outputData = outputs['generated_image'].data;
+      const outputData = outputs['generated_image'].data as Float32Array;
       
       // Create a temporary canvas for the original 28x28 image
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = 28;
       tempCanvas.height = 28;
       const tempCtx = tempCanvas.getContext('2d');
+      if (!tempCtx) return;
       
       // Draw the digit at original size
       const imageData = tempCtx.createImageData(28, 28);
@@ -248,6 +261,7 @@ const VAEExplorer = () => {
       // Get the target canvas and clear it
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
+      if (!ctx) return;
       ctx.fillStyle = '#0B143780'; // Changed from '#FB1437' to match the main background color
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
@@ -272,10 +286,9 @@ const VAEExplorer = () => {
     }
   };
 
-  const handleMouseDown = (e) => {
-    // setIsDragging(true);
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDragging(!isDragging);
-    const rect = e.target.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     const newPosition = {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
@@ -283,9 +296,9 @@ const VAEExplorer = () => {
     setPosition(newPosition);
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isDragging) {
-      const rect = e.target.getBoundingClientRect();
+      const rect = e.currentTarget.getBoundingClientRect();
       const newPosition = {
         x: Math.min(Math.max(0, e.clientX - rect.left), 350), // Updated boundary
         y: Math.min(Math.max(0, e.clientY - rect.top), 350)   // Updated boundary
@@ -311,9 +324,20 @@ const VAEExplorer = () => {
     <Card className="h-screen w-screen bg-[#0B1437] text-cyan-400 border-cyan-500 rounded-none flex flex-col">
       <CardHeader className="flex flex-row justify-between items-center sticky top-0 z-10 bg-[#0B1437] border-b border-cyan-900 w-full">
         <CardTitle className="text-2xl font-mono tracking-wider">
-          MNIST.VAE//:_EXPLORER
+          MNIST.VAE//:_EXPLORER  
         </CardTitle>
         <div className="flex items-center gap-4">
+        <a 
+              href="https://github.com/cpldcpu/LatentSpaceExplorer"   
+            
+            target="_blank" 
+            rel="noopener noreferrer" 
+           
+          >
+            <img 
+              src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" 
+              className="w-8 h-8"
+            /></a>
           <input
             type="file"
             ref={fileInputRef}
@@ -329,14 +353,14 @@ const VAEExplorer = () => {
             accept=".msgpack"
           />
           <Button 
-            onClick={() => metadataInputRef.current.click()}
+            onClick={() => metadataInputRef.current?.click()}
             className="bg-orange-900 hover:bg-orange-800 text-orange-100 border border-orange-500"
           >
             <Upload className="mr-2 h-4 w-4" />
             {metadata ? 'Metadata Loaded' : 'Load Metadata'}
           </Button>
           <Button 
-            onClick={() => fileInputRef.current.click()}
+            onClick={() => fileInputRef.current?.click()}
             className={`bg-cyan-900 hover:bg-cyan-800 text-cyan-100 border border-cyan-500 ${
               isLoading ? 'opacity-50 cursor-wait' : ''
             }`}

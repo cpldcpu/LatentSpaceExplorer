@@ -8,7 +8,7 @@ export default defineConfig(({ command, mode }) => {
     const isGitHubPages = mode === 'github-pages'
 
   // Set the base path manually
-    const base = isGitHubPages ? `/neural-network-visualizer/` : '/';
+    const base = isGitHubPages ? `/LatentSpaceExplorer/` : '/';
 
     return {
       plugins: [react(), Pages()],
