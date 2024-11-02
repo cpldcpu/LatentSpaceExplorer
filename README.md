@@ -20,7 +20,7 @@ The app consists of two main parts: The latent space explorer and the VAE model 
 
 The training code (Python) can be found in the `train` directory. `train.py` trains the VAE and saves it as a checkpoint in addition to some test-images. `export_vae_2_onnx.py` reads the checkpoint and exports to onnx and saves a latent space make as .msgpack and .json.
 
-The VAE definition is shown below. Interestingly, this was one of the parts that was messed up by Claude, so I had to manually fix the padding and channels. Certainly, a smaller model would have also done a job. Having two layers at full resolution in the decoder turned out to be crucial to avoid too blurry output.
+The VAE definition is shown below. Interestingly, this was one of the parts that was messed up by Claude, so I had to manually fix the padding and channels. Certainly, a smaller model would have also done the job. Having two layers at full resolution in the decoder turned out to be crucial to avoid too blurry output.
 
 ```python
     # Encoder
