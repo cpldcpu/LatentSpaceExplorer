@@ -1,26 +1,48 @@
 # Latent Space Explorer
 
-Online version **[here](https://cpldcpu.github.io/LatentSpaceExplorer/)**.
+A web-based interactive tool for exploring the latent space of a Variational Autoencoder (VAE) trained on the MNIST dataset.
 
-A web-based interactive tool to explore the latent space of a variational autoencoder (VAE) that was trained on the MNIST dataset. Idea shamelessly taken from [N8s implementation](https://n8python.github.io/mnistLatentSpace/).
+<div align="center">
 
-This was an exercise in "speed-prompting" starting with a Claude Artifact and then using the "Copilot Edits" interface with Sonnet and o1-preview to complete the artifact and training code. Total time until all functionality was implemented, including training, was ~2h30. 
+**[Try it online here](https://cpldcpu.github.io/LatentSpaceExplorer/)**
 
-The app is based on Typescript, React, Tailwind, Vite and uses an onnx runtime for inference. The training code uses pytorch. I reused the harness from the [Neural Network Visualizer](https://github.com/cpldcpu/neural-network-visualizer), to speed up deployment. 
-
-The design was all done by claude. I asked for "Cyberpunk" style...
+</div>
 
 [![LatentSpaceExplorer](screenshot.png)](https://cpldcpu.github.io/LatentSpaceExplorer/)
 
-## How to Use
+## Overview
 
-The app consists of two main parts: The latent space explorer and the VAE model viewer. Use the mouse to pick a point in the latent space, and the VAE model will generate an image from that point. The latent space explorer shows the distribution of the latent space in a 2D projection. The colors indicate the class of the digit
+This project was inspired by [N8's implementation](https://n8python.github.io/mnistLatentSpace/) and developed as a "speed-prompting" exercise using Claude Artifact and GitHub Copilot's editing capabilities. The entire implementation, including training, took approximately 2.5 hours.
 
-## Neural Network and Training
+### Tech Stack
+- Frontend: TypeScript, React, Tailwind CSS, Vite
+- Inference: ONNX Runtime
+- Training: PyTorch
+- Deployment: Based on [Neural Network Visualizer](https://github.com/cpldcpu/neural-network-visualizer)
 
-The training code (Python) can be found in the `train` directory. `train.py` trains the VAE and saves it as a checkpoint in addition to some test-images. `export_vae_2_onnx.py` reads the checkpoint and exports to onnx and saves a latent space make as .msgpack and .json.
+The UI features a cyberpunk-inspired design created with Claude's assistance.
 
-The VAE definition is shown below. Interestingly, this was one of the parts that was messed up by Claude, so I had to manually fix the padding and channels. Certainly, a smaller model would have also done the job. Having two layers at full resolution in the decoder turned out to be crucial to avoid too blurry output.
+## Features
+
+The application consists of two main components:
+1. **Latent Space Explorer**: Visualizes the distribution of the latent space in 2D projection, with colors indicating digit classes
+2. **VAE Model Viewer**: Generates images from selected points in the latent space
+
+## Implementation Details
+
+### Training
+The training code is located in the `train` directory:
+- `train.py`: Trains the VAE and saves checkpoints and test images
+- `export_vae_2_onnx.py`: Converts checkpoint to ONNX format and exports latent space data as msgpack/JSON
+
+### Neural Network Architecture
+
+The VAE implementation features:
+- Encoder with three convolutional layers
+- Two-dimensional latent space
+- Decoder with two full-resolution layers for improved output clarity
+
+Interestingly, this was one of the parts that was messed up by Claude, so I had to manually fix the padding and channels. Certainly, a smaller model would have also done the job. Having two layers at full resolution in the decoder turned out to be crucial to avoid too blurry output.
 
 ```python
     # Encoder
