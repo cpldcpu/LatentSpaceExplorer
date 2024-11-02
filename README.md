@@ -23,37 +23,37 @@ The training code (Python) can be found in the `train` directory. `train.py` tra
 The VAE definition is shown below. Interestingly, this was one of the parts that was messed up by Claude, so I had to manually fix the padding and channels. Certainly, a smaller model would have also done a job. Having two layers at full resolution in the decoder turned out to be crucial to avoid too blurry output.
 
 ```python
-       # Encoder
-        self.encoder = nn.Sequential(
-            nn.Conv2d(1, 32, 3, stride=1, padding=1),  
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, 3, stride=2, padding=1),  
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, 3, stride=2, padding=1),  
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.Flatten()
-        )
-        
-        # Latent space
-        self.fc_mu = nn.Linear(32 * 7 * 7, latent_dim)
-        self.fc_var = nn.Linear(32 * 7 * 7, latent_dim)
-        
-        # Decoder
-        self.decoder_input = nn.Linear(latent_dim, 32 * 7 * 7)
-        
-        self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1,output_padding=1),  
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1,output_padding=1),  
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, 1, 3, stride=1, padding=1), 
-            nn.Sigmoid()
-        )
+    # Encoder
+    self.encoder = nn.Sequential(
+        nn.Conv2d(1, 32, 3, stride=1, padding=1),  
+        nn.BatchNorm2d(32),
+        nn.ReLU(),
+        nn.Conv2d(32, 32, 3, stride=2, padding=1),  
+        nn.BatchNorm2d(32),
+        nn.ReLU(),
+        nn.Conv2d(32, 32, 3, stride=2, padding=1),  
+        nn.BatchNorm2d(32),
+        nn.ReLU(),
+        nn.Flatten()
+    )
+    
+    # Latent space
+    self.fc_mu = nn.Linear(32 * 7 * 7, latent_dim)
+    self.fc_var = nn.Linear(32 * 7 * 7, latent_dim)
+    
+    # Decoder
+    self.decoder_input = nn.Linear(latent_dim, 32 * 7 * 7)
+    
+    self.decoder = nn.Sequential(
+        nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1,output_padding=1),  
+        nn.BatchNorm2d(32),
+        nn.ReLU(),
+        nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1,output_padding=1),  
+        nn.BatchNorm2d(32),
+        nn.ReLU(),
+        nn.ConvTranspose2d(32, 1, 3, stride=1, padding=1), 
+        nn.Sigmoid()
+    )
 ```
 
 ## Building
