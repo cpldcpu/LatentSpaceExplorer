@@ -4,7 +4,7 @@ Online version **[here](https://cpldcpu.github.io/LatentSpaceExplorer/)**.
 
 A web-based interactive tool to explore the latent space of a variational autoencoder (VAE) that was trained on the MNIST dataset. Idea shamelessly taken from [N8s implementation](https://n8python.github.io/mnistLatentSpace/).
 
-This was an exercise in "speed-prompting" starting with a Claude Artifact and then using the "Copilot Edits" interface with Sonnet and o1-preview to complete the artifact and training code. Total time until all functionality was implemented, including training was 2:30h. 
+This was an exercise in "speed-prompting" starting with a Claude Artifact and then using the "Copilot Edits" interface with Sonnet and o1-preview to complete the artifact and training code. Total time until all functionality was implemented, including training, was ~2h30. 
 
 The app is based on Typescript, React, Tailwind, Vite and uses an onnx runtime for inference. The training code uses pytorch. I reused the harness from the [Neural Network Visualizer](https://github.com/cpldcpu/neural-network-visualizer), to speed up deployment. 
 
