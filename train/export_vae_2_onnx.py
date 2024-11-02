@@ -67,25 +67,44 @@ def create_class_density_map(latent_points, labels, grid_size=50, sigma=0.1):
     
     return density_maps, x, y
 
+def filter_state_dict(state_dict):
+    """Remove unexpected keys from state dictionary"""
+    filtered_dict = {}
+    expected_prefixes = [
+        'encoder.',
+        'decoder.',
+        'fc_mu.',
+        'fc_var.',
+        'decoder_input.'
+    ]
+    
+    for key in state_dict:
+        # Only keep keys that start with expected prefixes
+        if any(key.startswith(prefix) for prefix in expected_prefixes):
+            filtered_dict[key] = state_dict[key]
+    return filtered_dict
 def export_model_and_metadata():
     # Load the trained VAE
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     device = 'cpu'
     checkpoint = torch.load('vae_mnist.pth', map_location=device)
     
+    # Filter the state dictionary before using it
+    filtered_state_dict = filter_state_dict(checkpoint['model_state_dict'])
+    
     # Create and load decoder
     decoder = VAEDecoder().to(device)
     
-    # Extract decoder weights from full VAE
+    # Extract decoder weights from filtered state dict
     decoder_state_dict = {
-        'decoder_input.weight': checkpoint['model_state_dict']['decoder_input.weight'],
-        'decoder_input.bias': checkpoint['model_state_dict']['decoder_input.bias']
+        'decoder_input.weight': filtered_state_dict['decoder_input.weight'],
+        'decoder_input.bias': filtered_state_dict['decoder_input.bias']
     }
     
     # Map the decoder layers
-    for key in checkpoint['model_state_dict']:
+    for key in filtered_state_dict:
         if key.startswith('decoder.'):
-            decoder_state_dict[key] = checkpoint['model_state_dict'][key]
+            decoder_state_dict[key] = filtered_state_dict[key]
     
     decoder.load_state_dict(decoder_state_dict)
     decoder.eval()
@@ -114,7 +133,7 @@ def export_model_and_metadata():
     # Load full VAE for encoding
     from train import VAE  # Import your VAE class
     vae = VAE(latent_dim=2).to(device)
-    vae.load_state_dict(checkpoint['model_state_dict'])
+    vae.load_state_dict(filtered_state_dict)
     vae.eval()
     
     # Get latent representations and create density maps
@@ -130,8 +149,8 @@ def export_model_and_metadata():
         'labels': labels.tolist()
     }
     
-    with open('vae_metadata.json', 'w') as f:
-        json.dump(metadata, f)
+    # with open('vae_metadata.json', 'w') as f:
+    #     json.dump(metadata, f)
 
     # MessagePack export
     with open('vae_metadata.msgpack', 'wb') as f:

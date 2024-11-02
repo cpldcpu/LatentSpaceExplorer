@@ -142,7 +142,7 @@ def train_vae():
             recon_loss = F.binary_cross_entropy(recon_batch, data, reduction='sum')
             kl_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
             
-            loss = recon_loss + kl_loss
+            loss = recon_loss + kl_loss * 5
             loss.backward()
             train_loss += loss.item()
             optimizer.step()
