@@ -12,7 +12,7 @@ webcode/dist
 webcode/dist-ssr
 webcode/dist-github
 webcode/*.local
-__pyhache__
+__pycache__
 
 train/data
 
