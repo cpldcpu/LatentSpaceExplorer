@@ -262,7 +262,7 @@ const VAEExplorer = () => {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
-      ctx.fillStyle = '#0B143780'; // Changed from '#FB1437' to match the main background color
+      ctx.fillStyle = '#000000'; // Black background for contrast with generated digits
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // Scale up the image using drawImage for better quality
@@ -380,6 +380,7 @@ const VAEExplorer = () => {
                 width={350}
                 height={350}
                 className="border border-cyan-800"
+                style={{ background: '#000000', display: 'block' }}
               />
             </div>
             <p className="text-center mt-2 font-mono">GENERATED::OUTPUT</p>
