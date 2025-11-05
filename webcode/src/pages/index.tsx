@@ -46,7 +46,7 @@ const VAEExplorer = () => {
   };
 
   useEffect(() => {
-    env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@latest/dist/';
+    env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/';
     env.wasm.numThreads = 1;
     env.wasm.simd = true;
 
