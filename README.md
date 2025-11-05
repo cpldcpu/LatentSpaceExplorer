@@ -12,7 +12,7 @@ A web-based interactive tool for exploring the latent space of a Variational Aut
 
 ## Overview
 
-This project was inspired by [N8's implementation](https://n8python.github.io/mnistLatentSpace/) and developed as a "speed-prompting" exercise using Claude Artifact and GitHub Copilot's editing capabilities. The entire implementation, including training, took approximately 2.5 hours.
+This project was inspired by [N8's implementation](https://n8python.github.io/mnistLatentSpace/) and developed as a "speed-prompting" exercise using Claude Artifact (Sonnet 3.5 New) and GitHub Copilot's editing capabilities. The entire implementation, including training, took approximately 2.5 hours.
 
 ### Tech Stack
 - Frontend: TypeScript, React, Tailwind CSS, Vite
