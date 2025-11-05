@@ -46,7 +46,10 @@ const VAEExplorer = () => {
   };
 
   useEffect(() => {
-    env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/';
+    // ONNX Runtime v1.23.0 configuration
+    // Let it auto-detect and use bundled WASM files from node_modules
+    // No need to set wasmPaths - Vite will bundle them correctly
+
     env.wasm.numThreads = 1;
     env.wasm.simd = true;
 

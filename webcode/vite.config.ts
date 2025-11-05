@@ -16,11 +16,32 @@ export default defineConfig(({ command, mode }) => {
       build: {
         outDir: isGitHubPages ? 'dist-github' : 'dist',
         sourcemap: true,
+        rollupOptions: {
+          output: {
+            assetFileNames: (assetInfo) => {
+              // Keep WASM files in a predictable location
+              if (assetInfo.name?.endsWith('.wasm')) {
+                return 'assets/[name]-[hash][extname]';
+              }
+              return 'assets/[name]-[hash][extname]';
+            },
+          },
+        },
       },
       resolve: {
         alias: {
           "@": path.resolve(__dirname, "./src"),
         },
       },
+      server: {
+        headers: {
+          'Cross-Origin-Embedder-Policy': 'credentialless',
+          'Cross-Origin-Opener-Policy': 'same-origin',
+        },
+      },
+      optimizeDeps: {
+        exclude: ['onnxruntime-web'],
+      },
+      assetsInclude: ['**/*.wasm'],
     }
   })
